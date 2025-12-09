@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI/CD Pipeline with Trivy
  
 on:
 
@@ -18,9 +18,9 @@ env:
  
 jobs:
 
-  # Job 1: Build and Push Docker Image Only
+  # Job 1: Build, Scan and Push Docker Image
 
-  build-and-push:
+  build-scan-and-push:
 
     runs-on: ubuntu-latest
 
@@ -55,6 +55,122 @@ jobs:
       - name: List Docker Images
 
         run: docker images | grep myfirstdevopspipeline
+ 
+      # ========================================
+
+      # TRIVY SECURITY SCANNING (NEW)
+
+      # ========================================
+
+      - name: Run Trivy Vulnerability Scanner
+
+        uses: aquasecurity/trivy-action@master
+
+        with:
+
+          image-ref: ${{ env.DOCKER_IMAGE }}:${{ env.IMAGE_TAG }}
+
+          format: 'table'
+
+          exit-code: '0'  # Don't fail the build
+
+          ignore-unfixed: true
+
+          vuln-type: 'os,library'
+
+          severity: 'CRITICAL,HIGH,MEDIUM'
+
+        continue-on-error: true  # Continue even if vulnerabilities found
+ 
+      - name: Run Trivy Scanner (SARIF format for GitHub Security)
+
+        uses: aquasecurity/trivy-action@master
+
+        with:
+
+          image-ref: ${{ env.DOCKER_IMAGE }}:${{ env.IMAGE_TAG }}
+
+          format: 'sarif'
+
+          output: 'trivy-results.sarif'
+
+          severity: 'CRITICAL,HIGH'
+
+        continue-on-error: true
+ 
+      - name: Upload Trivy Results to GitHub Security
+
+        uses: github/codeql-action/upload-sarif@v3
+
+        if: always()
+
+        with:
+
+          sarif_file: 'trivy-results.sarif'
+
+        continue-on-error: true
+ 
+      - name: Generate Trivy Report Summary
+
+        uses: aquasecurity/trivy-action@master
+
+        with:
+
+          image-ref: ${{ env.DOCKER_IMAGE }}:${{ env.IMAGE_TAG }}
+
+          format: 'json'
+
+          output: 'trivy-report.json'
+
+          severity: 'CRITICAL,HIGH'
+
+        continue-on-error: true
+ 
+      - name: Display Trivy Summary
+
+        if: always()
+
+        run: |
+
+          echo "=========================================="
+
+          echo "🔒 TRIVY SECURITY SCAN SUMMARY"
+
+          echo "=========================================="
+
+          if [ -f trivy-report.json ]; then
+
+            CRITICAL=$(cat trivy-report.json | grep -o '"Severity":"CRITICAL"' | wc -l)
+
+            HIGH=$(cat trivy-report.json | grep -o '"Severity":"HIGH"' | wc -l)
+
+            echo "🚨 Critical vulnerabilities: $CRITICAL"
+
+            echo "⚠️  High vulnerabilities: $HIGH"
+
+            echo ""
+
+            echo "📊 Full security report available in:"
+
+            echo "   - GitHub Actions logs (above)"
+
+            echo "   - GitHub Security tab"
+
+          else
+
+            echo "✅ Trivy scan completed"
+
+          fi
+
+          echo "=========================================="
+
+        continue-on-error: true
+ 
+      # ========================================
+
+      # CONTINUE WITH NORMAL PIPELINE
+
+      # ========================================
  
       - name: Push Docker Image to Docker Hub
 
