@@ -1,5 +1,14 @@
+<<<<<<< HEAD
 name: CI/CD Pipeline with Trivy
  
+=======
+<<<<<<< HEAD
+name: CI/CD Pipeline
+=======
+name: CI/CD Pipeline with Trivy
+ 
+>>>>>>> 9fc2cde (my fourth commit)
+>>>>>>> caffe4c (my third commit)
 on:
 
   push:
@@ -17,11 +26,25 @@ env:
   IMAGE_TAG: ${{ github.sha }}
  
 jobs:
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+ 
+  # Job 1: Build and Push Docker Image Only
+ 
+  build-and-push:
+ 
+=======
+>>>>>>> caffe4c (my third commit)
 
   # Job 1: Build, Scan and Push Docker Image
 
   build-scan-and-push:
 
+<<<<<<< HEAD
+=======
+>>>>>>> 9fc2cde (my fourth commit)
+>>>>>>> caffe4c (my third commit)
     runs-on: ubuntu-latest
 
     steps:
@@ -55,6 +78,11 @@ jobs:
       - name: List Docker Images
 
         run: docker images | grep myfirstdevopspipeline
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> caffe4c (my third commit)
  
       # ========================================
 
@@ -172,6 +200,10 @@ jobs:
 
       # ========================================
  
+<<<<<<< HEAD
+=======
+>>>>>>> 9fc2cde (my fourth commit)
+>>>>>>> caffe4c (my third commit)
       - name: Push Docker Image to Docker Hub
 
         run: |
